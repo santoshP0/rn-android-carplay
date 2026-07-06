@@ -1,7 +1,7 @@
-# @santoshpk/rn-android-carplay
+# @santoshpk/react-native-carplay
 
-[![npm](https://img.shields.io/npm/v/@santoshpk/rn-android-carplay.svg)](https://www.npmjs.com/package/@santoshpk/rn-android-carplay)
-[![license](https://img.shields.io/npm/l/@santoshpk/rn-android-carplay.svg)](./LICENSE)
+[![npm](https://img.shields.io/npm/v/@santoshpk/react-native-carplay.svg)](https://www.npmjs.com/package/@santoshpk/react-native-carplay)
+[![license](https://img.shields.io/npm/l/@santoshpk/react-native-carplay.svg)](./LICENSE)
 
 React Native bindings for **Android Auto** and **Apple CarPlay**.
 
@@ -21,9 +21,9 @@ A fork of [`react-native-carplay`](https://github.com/birkir/react-native-carpla
 ## Install
 
 ```bash
-npm i @santoshpk/rn-android-carplay
+npm i @santoshpk/react-native-carplay
 # or
-yarn add @santoshpk/rn-android-carplay
+yarn add @santoshpk/react-native-carplay
 ```
 
 ### Drop-in for existing `react-native-carplay` code
@@ -32,48 +32,35 @@ If your app already imports `react-native-carplay`, alias it so no import change
 needed:
 
 ```bash
-npm i react-native-carplay@npm:@santoshpk/rn-android-carplay
+npm i react-native-carplay@npm:@santoshpk/react-native-carplay
 ```
 
-Otherwise update imports to `@santoshpk/rn-android-carplay`.
+Otherwise update imports to `@santoshpk/react-native-carplay`.
 
 ---
 
 ## Usage
 
 ```tsx
-import {
-  CarPlay,
-  ListTemplate,
-  PaneTemplate,
-} from '@santoshpk/rn-android-carplay';
+import { useEffect } from 'react';
+import { CarPlay, ListTemplate } from '@santoshpk/react-native-carplay';
 
-// Build a template
-const listTemplate = new ListTemplate({
-  title: 'On-call',
-  sections: [
-    {
-      header: 'Shifts',
-      items: [
-        { text: 'Morning', detailText: '6am – 2pm' },
-        { text: 'Evening', detailText: '2pm – 10pm' },
-      ],
-    },
-  ],
-  onItemSelect: async ({ index }) => {
-    console.log('selected', index);
-  },
-});
+export default function HelloCar() {
+  useEffect(() => {
+    const template = new ListTemplate({
+      title: 'Hello',
+      sections: [{ items: [{ text: 'Hello, Car!' }] }],
+    });
 
-// Wait for the car to connect, then set the root
-CarPlay.registerOnConnect(() => {
-  CarPlay.setRootTemplate(listTemplate);
-});
+    CarPlay.registerOnConnect(() => CarPlay.setRootTemplate(template));
+  }, []);
 
-CarPlay.registerOnDisconnect(() => {
-  // clean up
-});
+  return null;
+}
 ```
+
+See the [`examples/`](./examples) folder for a simple, self-contained `.tsx` file per
+template — list, grid, pane, message, alert, **map with markers**, and **navigation**.
 
 ### Core `CarPlay` API
 

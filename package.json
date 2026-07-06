@@ -1,5 +1,5 @@
 {
-  "name": "@santoshpk/rn-android-carplay",
+  "name": "@santoshpk/react-native-carplay",
   "version": "1.0.3",
   "description": "React Native Android Auto / CarPlay — fork of react-native-carplay with ReactHost migration, POI enhancements, and modern RN compatibility",
   "main": "lib/index.js",
