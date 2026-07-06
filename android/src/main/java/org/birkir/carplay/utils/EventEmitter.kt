@@ -104,6 +104,13 @@ class EventEmitter(
     })
   }
 
+  fun didSelectPointOfInterest(id: String, index: Int) {
+    val event = Arguments.createMap()
+    event.putString("id", id)
+    event.putInt("index", index)
+    emit(DidSelectPointOfInterest, event)
+  }
+
   fun didSelectTemplate(selectedTemplateId: String) {
     emit(DidSelectTemplate, Arguments.createMap().apply {
       putString("selectedTemplateId", selectedTemplateId)

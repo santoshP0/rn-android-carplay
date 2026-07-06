@@ -29,10 +29,11 @@
     };
 }
 
-+ (void) connectWithInterfaceController:(CPInterfaceController*)interfaceController window:(CPWindow*)window {
++ (void) connectWithInterfaceController:(CPInterfaceController*)interfaceController window:(CPWindow*)window scene:(CPTemplateApplicationScene*)scene {
     RNCPStore * store = [RNCPStore sharedManager];
     store.interfaceController = interfaceController;
     store.window = window;
+    store.scene = scene;
     [store setConnected:true];
     RNCarPlay *cp = [RNCarPlay allocWithZone:nil];
     if (cp.bridge) {
@@ -186,7 +187,20 @@ RCT_EXPORT_METHOD(checkForConnection) {
     }
 }
 
-RCT_EXPORT_METHOD(createTemplate:(NSString *)templateId config:(NSDictionary*)config) {
+RCT_EXPORT_METHOD(openUrl:(NSString *)url) {
+    RNCPStore *store = [RNCPStore sharedManager];
+    CPTemplateApplicationScene *templateApplicationScene = store.scene;
+    NSURL *URL = [NSURL URLWithString:url];
+    [templateApplicationScene openURL:URL options:NULL completionHandler:^(BOOL success) {
+        if (success) {
+                NSLog(@"Opened url %@", url);
+        }
+    }];
+}
+
+
+RCT_EXPORT_METHOD(createTemplate:(NSString *)templateId config:(NSDictionary*)config callback:(id)callback)
+{
     // Get the shared instance of the RNCPStore class
     RNCPStore *store = [RNCPStore sharedManager];
 
@@ -341,18 +355,22 @@ RCT_EXPORT_METHOD(createTemplate:(NSString *)templateId config:(NSDictionary*)co
         CPAlertTemplate *alertTemplate = [[CPAlertTemplate alloc] initWithTitleVariants:titleVariants actions:actions];
         carPlayTemplate = alertTemplate;
     } else if ([type isEqualToString:@"poi"]) {
-        NSString *title = [RCTConvert NSString:config[@"title"]];
-        NSMutableArray<__kindof CPPointOfInterest *> * items = [NSMutableArray new];
-        NSUInteger selectedIndex = 0;
+        // NSString *title = [RCTConvert NSString:config[@"title"]];
+        // NSMutableArray<__kindof CPPointOfInterest *> * items = [NSMutableArray new];
+        // NSUInteger selectedIndex = 0;
 
-        NSArray<NSDictionary*> *_items = [RCTConvert NSDictionaryArray:config[@"items"]];
-        for (NSDictionary *_item in _items) {
-            CPPointOfInterest *poi = [RCTConvert CPPointOfInterest:_item];
-            [poi setUserInfo:_item];
-            [items addObject:poi];
-        }
+        // NSArray<NSDictionary*> *_items = [RCTConvert NSDictionaryArray:config[@"items"]];
+        // for (NSDictionary *_item in _items) {
+        //     CPPointOfInterest *poi = [RCTConvert CPPointOfInterest:_item];
+        //     [poi setUserInfo:_item];
+        //     [items addObject:poi];
+        // }
 
-        CPPointOfInterestTemplate *poiTemplate = [[CPPointOfInterestTemplate alloc] initWithTitle:title pointsOfInterest:items selectedIndex:selectedIndex];
+        // CPPointOfInterestTemplate *poiTemplate = [[CPPointOfInterestTemplate alloc] initWithTitle:title pointsOfInterest:items selectedIndex:selectedIndex];
+        RNCPStore *store = [RNCPStore sharedManager];
+
+        CPPointOfInterestTemplate *poiTemplate = [self createCarPlayPOISCreen:store.interfaceController responseList:config[@"items"] templateId:templateId];
+
         poiTemplate.pointOfInterestDelegate = self;
         carPlayTemplate = poiTemplate;
     } else if ([type isEqualToString:@"information"]) {
@@ -497,7 +515,7 @@ RCT_EXPORT_METHOD(setRootTemplate:(NSString *)templateId animated:(BOOL)animated
 
     if (template) {
         [store.interfaceController setRootTemplate:template animated:animated completion:^(BOOL done, NSError * _Nullable err) {
-            NSLog(@"error %@", err);
+            NSLog(@"error at  setRootTemplate%@", err);
             // noop
         }];
     } else {
@@ -510,7 +528,7 @@ RCT_EXPORT_METHOD(pushTemplate:(NSString *)templateId animated:(BOOL)animated) {
     CPTemplate *template = [store findTemplateById:templateId];
     if (template) {
         [store.interfaceController pushTemplate:template animated:animated completion:^(BOOL done, NSError * _Nullable err) {
-            NSLog(@"error %@", err);
+            NSLog(@"error at pushTemplate %@", err);
             // noop
         }];
     } else {
@@ -523,7 +541,7 @@ RCT_EXPORT_METHOD(popToTemplate:(NSString *)templateId animated:(BOOL)animated) 
     CPTemplate *template = [store findTemplateById:templateId];
     if (template) {
         [store.interfaceController popToTemplate:template animated:animated completion:^(BOOL done, NSError * _Nullable err) {
-            NSLog(@"error %@", err);
+            NSLog(@"error at popToTemplate %@", err);
             // noop
         }];
     } else {
@@ -534,7 +552,7 @@ RCT_EXPORT_METHOD(popToTemplate:(NSString *)templateId animated:(BOOL)animated) 
 RCT_EXPORT_METHOD(popToRootTemplate:(BOOL)animated) {
     RNCPStore *store = [RNCPStore sharedManager];
     [store.interfaceController popToRootTemplateAnimated:animated completion:^(BOOL done, NSError * _Nullable err) {
-        NSLog(@"error %@", err);
+        NSLog(@"error at popToRootTemplate %@", err);
         // noop
     }];
 }
@@ -542,7 +560,7 @@ RCT_EXPORT_METHOD(popToRootTemplate:(BOOL)animated) {
 RCT_EXPORT_METHOD(popTemplate:(BOOL)animated) {
     RNCPStore *store = [RNCPStore sharedManager];
     [store.interfaceController popTemplateAnimated:animated completion:^(BOOL done, NSError * _Nullable err) {
-        NSLog(@"error %@", err);
+        NSLog(@"error at popTemplate %@", err);
         // noop
     }];
 }
@@ -552,7 +570,7 @@ RCT_EXPORT_METHOD(presentTemplate:(NSString *)templateId animated:(BOOL)animated
     CPTemplate *template = [store findTemplateById:templateId];
     if (template) {
         [store.interfaceController presentTemplate:template animated:animated completion:^(BOOL done, NSError * _Nullable err) {
-            NSLog(@"error %@", err);
+            NSLog(@"error at presentTemplate %@", err);
             // noop
         }];
     } else {
@@ -1031,6 +1049,7 @@ RCT_EXPORT_METHOD(updateMapTemplateMapButtons:(NSString*) templateId mapButtons:
     return _actions;
 }
 
+
 - (NSArray<CPGridButton*>*)parseGridButtons:(NSArray*)buttons templateId:(NSString*)templateId {
     NSMutableArray *result = [NSMutableArray array];
     int index = 0;
@@ -1219,10 +1238,12 @@ RCT_EXPORT_METHOD(updateMapTemplateMapButtons:(NSString*) templateId mapButtons:
 
 - (void)sendTemplateEventWithName:(CPTemplate *)template name:(NSString*)name json:(NSDictionary*)json {
     NSMutableDictionary *body = [[NSMutableDictionary alloc] initWithDictionary:json];
-    NSDictionary *userInfo = [template userInfo];
-    [body setObject:[userInfo objectForKey:@"templateId"] forKey:@"templateId"];
-    if (hasListeners) {
-        [self sendEventWithName:name body:body];
+        NSDictionary *userInfo = [template userInfo];
+        if(userInfo){
+          [body setObject:[userInfo objectForKey:@"templateId"] forKey:@"templateId"];
+          if(hasListeners) {
+            [self sendEventWithName:name body:body];
+        }
     }
 }
 
@@ -1339,10 +1360,452 @@ RCT_EXPORT_METHOD(updateMapTemplateMapButtons:(NSString*) templateId mapButtons:
 # pragma PointOfInterest
 -(void)pointOfInterestTemplate:(CPPointOfInterestTemplate *)pointOfInterestTemplate didChangeMapRegion:(MKCoordinateRegion)region {
     // noop
+    
+//    NSDictionary *regionDictionary = @{
+//                  @"latitude": @(region.center.latitude),
+//                  @"longitude": @(region.center.longitude),
+//                  @"latitudeDelta": @(region.span.latitudeDelta),
+//                  @"longitudeDelta": @(region.span.longitudeDelta)
+//              };
+//
+//      [self sendTemplateEventWithName:pointOfInterestTemplate name:@"didChangeMapRegion" json:regionDictionary];
 }
 
 -(void)pointOfInterestTemplate:(CPPointOfInterestTemplate *)pointOfInterestTemplate didSelectPointOfInterest:(CPPointOfInterest *)pointOfInterest {
-    [self sendTemplateEventWithName:pointOfInterestTemplate name:@"didSelectPointOfInterest" json:[pointOfInterest userInfo]];
+    
+
+//    RNCPStore *store = [RNCPStore sharedManager];
+//    CPTemplateApplicationScene *templateApplicationScene = store.scene;
+//    
+
+    
+//
+//        [pointOfInterest.location  openInMapsWithLaunchOptions:nil fromScene:templateApplicationScene completionHandler:^(BOOL success) {
+//            NSLog(@"Selected map item: %@",pointOfInterest.location);
+//        }];
+//
+    
+}
+
+- (void)pointOfInterestTemplate:(CPPointOfInterestTemplate *)poiTemplate didSelectMapItem:(MKMapItem *)mapItem {
+    // Handle the selection of the map item here
+    NSLog(@"Selected map item: %@", mapItem);
+    
+    [mapItem openInMapsWithLaunchOptions:nil fromScene:poiTemplate completionHandler:^(BOOL success) {
+        NSLog(@"Selected map item: %@", mapItem);
+    }];
+}
+
+- (CPPointOfInterestTemplate *)createCarPlayPOISCreen:(CPInterfaceController *)cpInterface responseList:(NSDictionary *)responseData templateId:(NSString *)templateId {
+    
+    NSArray<NSDictionary*> *items = [RCTConvert NSDictionaryArray:responseData[@"items"]];
+
+    NSMutableArray<CPPointOfInterest *> *pois = [NSMutableArray array];
+    
+    for (NSDictionary *item in items) {
+        
+        double latitudeValue = item[@"latitude"] && [item[@"latitude"] isKindOfClass:[NSNumber class]] ? [item[@"latitude"] doubleValue]: 0; // Extracting double value from NSNumber
+        double longitudeValue = item[@"longitude"] && [item[@"longitude"] isKindOfClass:[NSNumber class]] ? [item[@"longitude"] doubleValue] : 0; // Extracting double value from NSNumber
+        [pois addObject:createPOI(cpInterface,item,latitudeValue,longitudeValue,templateId)];
+    }
+
+    CPPointOfInterestTemplate *template = [[CPPointOfInterestTemplate alloc] initWithTitle:responseData[@"title"] pointsOfInterest:pois selectedIndex:NSNotFound];
+    
+    
+    
+    return template;
+}
+
+// Function to create a composite image with a small icon positioned to the right side and bottom of the main icon,
+// or a circular filled background with a specified color if the small icon is not present
+- (UIImage *)compositeImageWithMainIcon:(UIImage *)mainIcon smallIcon:(UIImage *)smallIcon backgroundColor:(UIColor *)backgroundColor {
+    // Specify the desired width and height for the composite image
+    CGFloat compositeWidth = MAX(mainIcon.size.width, smallIcon.size.width); // Use the maximum width of the two icons
+    CGFloat compositeHeight = MAX(mainIcon.size.height, smallIcon.size.height); // Use the maximum height of the two icons
+    
+    // Begin a new image context, to draw our composite image
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(compositeWidth, compositeHeight), NO, 0.0);
+    
+    // Calculate the position for drawing the main icon at the top left
+    CGPoint mainIconPosition = CGPointZero;
+    
+    if (smallIcon) {
+        // If small icon is available, draw it at the right side and bottom of the main icon
+        [mainIcon drawAtPoint:CGPointZero]; // Draw the main icon at the top left
+        
+        // Calculate the position for drawing the small icon to the right side and bottom of the main icon
+        CGPoint smallIconPosition = CGPointMake(mainIcon.size.width, mainIcon.size.height);
+        [smallIcon drawAtPoint:smallIconPosition];
+    } else {
+        // If small icon is not available, create a circular filled background with the specified color
+        // Draw circular filled background using the specified color
+        CGContextRef context = UIGraphicsGetCurrentContext();
+        CGRect circleRect = CGRectMake(mainIcon.size.width, mainIcon.size.height, compositeWidth - mainIcon.size.width, compositeHeight - mainIcon.size.height);
+        CGContextSetFillColorWithColor(context, backgroundColor.CGColor);
+        CGContextFillEllipseInRect(context, circleRect);
+        
+        // Draw the main icon at the top left
+        [mainIcon drawAtPoint:CGPointZero];
+    }
+    
+    // Get the composite image from the context
+    UIImage *compositeImage = UIGraphicsGetImageFromCurrentImageContext();
+    
+    // End the context
+    UIGraphicsEndImageContext();
+    
+    // Return the composite image
+    return compositeImage;
+}
+
+
+CPPointOfInterest *createPOI(CPInterfaceController *cpInterface,
+                             NSDictionary *responseObj,
+                             double lat,
+                             double lng,
+                             NSString *templateId) {
+
+    CLLocationCoordinate2D coordinate = CLLocationCoordinate2DMake(lat, lng);
+
+    MKPlacemark *placemark =
+    [[MKPlacemark alloc] initWithCoordinate:coordinate];
+
+    MKMapItem *location =
+    [[MKMapItem alloc] initWithPlacemark:placemark];
+
+    // -----------------------------
+    // Safe Title Handling
+    // -----------------------------
+    NSString *name = responseObj[@"title"];
+
+    name = (name &&
+            ![name isKindOfClass:[NSNull class]] &&
+            name.length > 0)
+    ? name
+    : @" ";
+
+    NSLog(@"UNIT ID ===> %@", name);
+
+    // -----------------------------
+    // Images
+    // -----------------------------
+    UIImage *selectedImage =
+    [[RNCarPlay alloc] imageFromBase64String:responseObj[@"imageUri"]];
+
+    selectedImage =
+    (selectedImage &&
+     ![selectedImage isKindOfClass:[NSNull class]])
+    ? [[RNCarPlay alloc] imageWithSize:selectedImage
+                         convertToSize:CGSizeMake(100, 100)]
+    : nil;
+
+    UIImage *pinImage =
+    (selectedImage &&
+     ![selectedImage isKindOfClass:[NSNull class]])
+    ? [[RNCarPlay alloc] imageWithSize:selectedImage
+                         convertToSize:CGSizeMake(25, 25)]
+    : nil;
+
+    // IMPORTANT:
+    // Prevent CarPlay iOS 26 tint/template rendering bug
+    if (pinImage) {
+        pinImage =
+        [pinImage imageWithRenderingMode:
+         UIImageRenderingModeAlwaysOriginal];
+    }
+
+    if (selectedImage) {
+        selectedImage =
+        [selectedImage imageWithRenderingMode:
+         UIImageRenderingModeAlwaysOriginal];
+    }
+
+    // -----------------------------
+    // Safe Text Handling
+    // Use nil instead of @""
+    // -----------------------------
+    NSString *subtitle = responseObj[@"subtitle"];
+
+    subtitle = (subtitle &&
+                ![subtitle isKindOfClass:[NSNull class]] &&
+                subtitle.length > 0)
+    ? subtitle
+    : nil;
+
+    NSString *summary = responseObj[@"summary"];
+
+    summary = (summary &&
+               ![summary isKindOfClass:[NSNull class]] &&
+               summary.length > 0)
+    ? summary
+    : nil;
+
+    NSString *detailSubtitle =
+    responseObj[@"detailSubtitle"];
+
+    detailSubtitle = (detailSubtitle &&
+                      ![detailSubtitle isKindOfClass:[NSNull class]] &&
+                      detailSubtitle.length > 0)
+    ? detailSubtitle
+    : nil;
+
+    NSString *detailSummary =
+    responseObj[@"detailSummary"];
+
+    detailSummary = (detailSummary &&
+                     ![detailSummary isKindOfClass:[NSNull class]] &&
+                     detailSummary.length > 0)
+    ? detailSummary
+    : nil;
+
+    // -----------------------------
+    // Create POI
+    // -----------------------------
+    CPPointOfInterest *poi;
+
+    if (@available(iOS 16.0, *)) {
+
+        poi = [[CPPointOfInterest alloc]
+               initWithLocation:location
+               title:name
+               subtitle:subtitle
+               summary:summary
+               detailTitle:name
+               detailSubtitle:detailSubtitle
+               detailSummary:detailSummary
+               pinImage:pinImage
+               selectedPinImage:selectedImage];
+
+    } else {
+
+        poi = [[CPPointOfInterest alloc]
+               initWithLocation:location
+               title:name
+               subtitle:subtitle
+               summary:summary
+               detailTitle:name
+               detailSubtitle:detailSubtitle
+               detailSummary:detailSummary
+               pinImage:pinImage];
+    }
+
+    // -----------------------------
+    // First Button
+    // -----------------------------
+    NSDictionary *firstButtonActionInfo =
+    responseObj[@"firstButtonActionInfo"];
+
+    BOOL isVisibleForFirstBtn =
+    [firstButtonActionInfo[@"isVisible"] boolValue];
+
+    if (isVisibleForFirstBtn) {
+
+        poi.primaryButton =
+        [[CPTextButton alloc]
+         initWithTitle:firstButtonActionInfo[@"title"]
+         textStyle:CPTextButtonStyleNormal
+         handler:^(CPTextButton * _Nonnull button) {
+
+            [[RNCarPlay new]
+             sendEventWithName:@"actionButtonPressed"
+             body:@{
+                @"templateId": templateId,
+                @"id": firstButtonActionInfo[@"actionType"],
+                @"responseObj": responseObj,
+                @"latitude": @(lat),
+                @"longitude": @(lng)
+             }];
+        }];
+    }
+
+    // -----------------------------
+    // Second Button
+    // -----------------------------
+    NSDictionary *secondButtonActionInfo =
+    responseObj[@"secondButtonActionInfo"];
+
+    BOOL isVisibleForSecondBtn =
+    [secondButtonActionInfo[@"isVisible"] boolValue];
+
+    if (isVisibleForSecondBtn) {
+
+        poi.secondaryButton =
+        [[CPTextButton alloc]
+         initWithTitle:secondButtonActionInfo[@"title"]
+         textStyle:CPTextButtonStyleNormal
+         handler:^(CPTextButton * _Nonnull button) {
+
+            NSString *mapsURLString =
+            [NSString stringWithFormat:
+             @"http://maps.apple.com/?ll=%f,%f",
+             lat,
+             lng];
+
+            NSLog(@"Maps URL: %@", mapsURLString);
+
+            [[RNCarPlay new]
+             sendEventWithName:@"actionButtonPressed"
+             body:@{
+                @"templateId": templateId,
+                @"id": secondButtonActionInfo[@"actionType"],
+                @"responseObj": responseObj,
+                @"latitude": @(lat),
+                @"longitude": @(lng)
+             }];
+        }];
+    }
+
+    return poi;
+}
+
+
+
+// This method kept for reference
+CPPointOfInterest *createPOI2( CPInterfaceController *cpInterface, NSDictionary * responseObj, double lat, double lng, NSString * templateId) {
+
+    CLLocationCoordinate2D coordinate = CLLocationCoordinate2DMake(lat, lng);
+    MKPlacemark *placemark = [[MKPlacemark alloc] initWithCoordinate:coordinate];
+    MKMapItem *location = [[MKMapItem alloc] initWithPlacemark:placemark];
+    NSString * name = responseObj[@"title"];
+    
+    
+    NSLog(@"UNIT ID ===> %@",name);
+    
+
+    // Assuming you have the image "MapMarker" in your bundle
+//    UIImage *image = [RCTConvert UIImage:responseObj[@"icon"]];
+    
+    
+    
+    UIImage * selectedImage = [[RNCarPlay alloc] imageFromBase64String:responseObj[@"imageUri"]];
+        
+    selectedImage  =  (selectedImage && ![selectedImage isKindOfClass:[NSNull class]]) ? [[RNCarPlay alloc] imageWithSize:selectedImage convertToSize:CGSizeMake(100, 100)] : nil;
+
+    UIImage  * pinImage = (selectedImage && ![selectedImage isKindOfClass:[NSNull class]]) ? [[RNCarPlay alloc] imageWithSize:selectedImage convertToSize:CGSizeMake(25, 25)] : nil;
+
+    NSString *subtitle = responseObj[@"subtitle"];
+    subtitle = (subtitle && subtitle != [NSNull null]) ? subtitle : @"";
+
+    NSString *summary = responseObj[@"summary"];
+    summary = (summary && summary != [NSNull null]) ? summary : @"";
+
+    NSString *detailSubtitle = responseObj[@"detailSubtitle"];
+    detailSubtitle = (detailSubtitle && detailSubtitle != [NSNull null]) ? detailSubtitle : @"";
+
+    NSString *detailSummary = responseObj[@"detailSummary"];
+    detailSummary = (detailSummary && detailSummary != [NSNull null]) ? detailSummary : @"";
+
+    
+    CPPointOfInterest *poi;
+    
+    if (@available(iOS 16.0, *)) {
+        poi = [[CPPointOfInterest alloc] initWithLocation:location
+                                                                        title:name
+                                                                     subtitle:subtitle
+                                                                      summary:summary
+                                                                 detailTitle:name
+                                                              detailSubtitle:detailSubtitle
+                                                               detailSummary:detailSummary
+                                                                    pinImage:pinImage
+                                                            selectedPinImage:selectedImage];
+    }
+    else{
+        poi = [[CPPointOfInterest alloc] initWithLocation:location
+                                                                        title:name
+                                                                     subtitle:subtitle
+                                                                      summary:summary
+                                                                 detailTitle:name
+                                                              detailSubtitle:detailSubtitle
+                                                               detailSummary:detailSummary
+                                                                    pinImage:pinImage];
+    }
+    
+    NSDictionary *firstButtonActionInfo = responseObj[@"firstButtonActionInfo"];
+    NSNumber *isVisibleNumber = firstButtonActionInfo[@"isVisible"];
+    BOOL isVisibleForFirstBtn = [isVisibleNumber boolValue];
+    
+    if(isVisibleForFirstBtn){
+        poi.primaryButton = [[CPTextButton alloc] initWithTitle:firstButtonActionInfo[@"title"] textStyle:CPTextButtonStyleNormal handler:^(CPTextButton * _Nonnull button) {
+    //        [cpInterface pushTemplate:createCarParkDetailScreen(cpInterface, responseObj[@"eventDetail"])
+    //                         animated:true completion:nil];
+            
+            [[RNCarPlay new] sendEventWithName:@"actionButtonPressed"
+                                          body:@{@"templateId": templateId,
+                                                 @"id": firstButtonActionInfo[@"actionType"],
+                                                 @"responseObj":responseObj,
+                                                 @"latitude": @(lat),
+                                                 @"longitude": @(lng)}];
+        }];
+    }
+    
+    NSDictionary *secondButtonActionInfo = responseObj[@"secondButtonActionInfo"];
+    BOOL isVisibleForSecondBtn= [secondButtonActionInfo[@"isVisible"] boolValue];
+
+    if(isVisibleForSecondBtn){
+        poi.secondaryButton = [[CPTextButton alloc] initWithTitle:responseObj[@"secondButtonActionInfo"][@"title"] textStyle:CPTextButtonStyleNormal handler:^(CPTextButton * _Nonnull button) {
+            
+            NSString *mapsURLString = [NSString stringWithFormat:@"http://maps.apple.com/?ll=%f,%f", lat, lng];
+            
+            //[[RNCarPlay new] openUrl:mapsURLString];
+
+            [[RNCarPlay new] sendEventWithName:@"actionButtonPressed"
+                                          body:@{@"templateId": templateId,
+                                                 @"id": responseObj[@"secondButtonActionInfo"][@"actionType"],
+                                                 @"responseObj":responseObj,
+                                                 @"latitude": @(lat),
+                                                 @"longitude": @(lng)}];
+        }];
+    }
+
+    return poi;
+}
+
++ (UIImage *)imageWithImage:(UIImage *)image scaledToSize:(CGSize)newSize {
+    //UIGraphicsBeginImageContext(newSize);
+    // In next line, pass 0.0 to use the current device's pixel scaling factor (and thus account for Retina resolution).
+    // Pass 1.0 to force exact pixel size.
+    UIGraphicsBeginImageContextWithOptions(newSize, NO, 0.0);
+    [image drawInRect:CGRectMake(0, 0, newSize.width, newSize.height)];
+    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return newImage;
+}
+
+// Function to convert Base64 encoded string to UIImage
+- (UIImage *)imageFromBase64String:(NSString *)base64String {
+    // Check if the string is not empty
+    if (base64String && ![base64String isEqualToString:@""]) {
+        // Convert the Base64 encoded string to NSData
+        NSData *imageData = [[NSData alloc] initWithBase64EncodedString:base64String options:NSDataBase64DecodingIgnoreUnknownCharacters];
+        
+        // Initialize UIImage with the NSData
+        UIImage *image = [UIImage imageWithData:imageData];
+        
+        return image;
+    } else {
+        // Return nil if the string is empty
+        return nil;
+    }
+}
+
+
+CPTemplate *createCarParkDetailScreen(CPInterfaceController *cpInterface, NSArray * eventDetailArr) {
+    
+    NSMutableArray<CPInformationItem *> *lines = [NSMutableArray array];
+
+    for (NSDictionary *item in eventDetailArr) {
+        [lines addObject:[[CPInformationItem alloc] initWithTitle:item[@"title"] detail:item[@"detail"]]];
+    }
+    
+    NSMutableArray<CPTextButton *> *actions = [NSMutableArray array];
+    
+  [actions addObject:[[CPTextButton alloc] initWithTitle:@"Done" textStyle:CPTextButtonStyleConfirm handler:^(CPTextButton * _Nonnull button) {
+       [cpInterface popTemplateAnimated:YES completion:nil];
+    }]];
+    
+    CPInformationTemplate *template = [[CPInformationTemplate alloc] initWithTitle:@"Details" layout:CPInformationTemplateLayoutTwoColumn items:lines actions:actions];
+    
+    return template;
 }
 
 # pragma InterfaceController

@@ -1,8 +1,22 @@
 import { Action, HeaderAction } from '../../interfaces/Action';
-import { AndroidNavigationBaseTemplate, AndroidNavigationBaseTemplateConfig } from './AndroidNavigationBaseTemplate';
 import { Place } from '../../interfaces/Place';
 import { ListItem } from '../../interfaces/ListItem';
-export interface PlaceListMapTemplateConfig extends AndroidNavigationBaseTemplateConfig {
+import { BaseEvent, Template, TemplateConfig } from '../Template';
+export interface MapItemPressEvent extends BaseEvent {
+    /**
+     * Button ID
+     */
+    id: string;
+    /**
+     * Button Index
+     */
+    index: number;
+    /**
+     * template ID
+     */
+    templateId: string;
+}
+export interface PlaceListMapTemplateConfig extends TemplateConfig {
     /**
      * Sets an ActionStrip with a list of template-scoped actions for this template.
      * The Action buttons in Map Based Template are automatically adjusted based on the screen size. On narrow width screen, icon Actions show by default. If no icon specify, showing title Actions instead. On wider width screen, title Actions show by default. If no title specify, showing icon Actions instead.
@@ -43,6 +57,8 @@ export interface PlaceListMapTemplateConfig extends AndroidNavigationBaseTemplat
      * Title for the map
      */
     title?: string;
+    onListItemPressed?(e: MapItemPressEvent): void;
+    onBackButtonPressed?(): void;
 }
 /**
  * A template that displays a map along with a list of places.
@@ -52,7 +68,11 @@ export interface PlaceListMapTemplateConfig extends AndroidNavigationBaseTemplat
  * - The template title has not changed, and the number of rows and the title (not counting spans) of each row between the previous and new ItemLists have not changed.
  * - The template is sent in response to a user-initiated content refresh request. (see setOnContentRefreshListener.
  */
-export declare class PlaceListMapTemplate extends AndroidNavigationBaseTemplate<PlaceListMapTemplateConfig> {
+export declare class PlaceListMapTemplate extends Template<PlaceListMapTemplateConfig> {
     get type(): string;
+    get eventMap(): {
+        didSelectPointOfInterest: string;
+        backButtonPressed: string;
+    };
 }
 //# sourceMappingURL=PlaceListMapTemplate.d.ts.map

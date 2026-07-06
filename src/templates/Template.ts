@@ -1,9 +1,8 @@
-import { ImageSourcePropType, Platform } from 'react-native';
+import { ImageSourcePropType, Platform, Image } from 'react-native';
 import { CarPlay } from '../CarPlay';
 import { BarButton } from '../interfaces/BarButton';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const resolveAssetSource = require('react-native/Libraries/Image/resolveAssetSource');
+// const resolveAssetSource = Image.resolveAssetSource.bind(Image);
 
 export interface BaseEvent {
   /**
@@ -71,6 +70,8 @@ export interface TemplateConfig {
    * @param e Event
    */
   onDidDisappear?(e: BaseEvent): void;
+
+  onActionButtonPressed?(e: BaseEvent): void;
 
   /**
    * Fired when bar button is pressed
@@ -153,7 +154,7 @@ export class Template<P> {
         }
         if (String(i).match(/[Ii]mage$/)) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-          obj[i] = resolveAssetSource(obj[i]);
+          obj[i] = Image.resolveAssetSource(obj[i]);
         }
       }
     }

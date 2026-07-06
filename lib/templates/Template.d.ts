@@ -64,6 +64,7 @@ export interface TemplateConfig {
      * @param e Event
      */
     onDidDisappear?(e: BaseEvent): void;
+    onActionButtonPressed?(e: BaseEvent): void;
     /**
      * Fired when bar button is pressed
      * @param e Event

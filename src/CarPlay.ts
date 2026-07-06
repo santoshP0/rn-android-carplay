@@ -1,4 +1,4 @@
-import { ImageSourcePropType, NativeEventEmitter, NativeModule, NativeModules } from 'react-native';
+import { ImageSourcePropType, NativeEventEmitter, NativeModule, NativeModules, Platform } from 'react-native';
 import { ActionSheetTemplate } from './templates/ActionSheetTemplate';
 import { AlertTemplate } from './templates/AlertTemplate';
 import { ContactTemplate } from './templates/ContactTemplate';
@@ -22,6 +22,8 @@ import { TripConfig } from './navigation/Trip';
 import { TimeRemainingColor } from './interfaces/TimeRemainingColor';
 import { TextConfiguration } from './interfaces/TextConfiguration';
 import { Action } from './interfaces/Action';
+import { MessageTemplate } from './templates/android/MessageTemplate';
+import { PaneTemplate } from './templates/android/PaneTemplate';
 
 export interface InternalCarPlay extends NativeModule {
   checkForConnection(): void;
@@ -33,6 +35,7 @@ export interface InternalCarPlay extends NativeModule {
   presentTemplate(templateId: string, animated: boolean): void;
   dismissTemplate(animated: boolean): void;
   enableNowPlaying(enabled: boolean): void;
+  openUrl(url: string): void;
   updateManeuversNavigationSession(id: string, x: Maneuver[]): void;
   updateTravelEstimatesNavigationSession(
     id: string,
@@ -89,6 +92,7 @@ export interface InternalCarPlay extends NativeModule {
     icon?: ImageSourcePropType;
     actions?: Action[];
   }): void;
+  launchGoogleMaps(url: string): void;
 }
 
 const { RNCarPlay } = NativeModules as { RNCarPlay: InternalCarPlay };
@@ -105,7 +109,9 @@ export type PushableTemplates =
   | NavigationTemplate
   | PlaceListMapTemplate
   | PlaceListNavigationTemplate
-  | RoutePreviewNavigationTemplate;
+  | MessageTemplate
+  | RoutePreviewNavigationTemplate
+  | PaneTemplate;
 
 export type PresentableTemplates = AlertTemplate | ActionSheetTemplate | VoiceControlTemplate;
 
@@ -150,6 +156,7 @@ export class CarPlayInterface {
         callback(window);
       });
     });
+
     this.emitter.addListener('didDisconnect', () => {
       this.connected = false;
       this.window = undefined;
@@ -157,11 +164,14 @@ export class CarPlayInterface {
         callback();
       });
     });
-    this.emitter.addListener('didPressMenuItem', e => {
-      if (e?.title === 'Reload Android Auto') {
-        this.bridge.reload();
-      }
-    });
+    
+    if (Platform.OS === 'android') {
+      this.emitter.addListener('didPressMenuItem', e => {
+        if (e?.title === 'Reload Android Auto') {
+          this.bridge.reload();
+        }
+      });
+    }
 
     // check if already connected this will fire any 'didConnect' events
     // if a connected is already present.
@@ -273,6 +283,20 @@ export class CarPlayInterface {
   public enableNowPlaying(enable = true) {
     return this.bridge.enableNowPlaying(enable);
   }
+
+ /**
+   * Open url on Car device
+   * @param url A Boolean value that indicates whether the system use now playing template.
+   */
+ public openUrl(url) {
+  console.log("OPEN URL",url)
+  return this.bridge.openUrl(url);
+}
+
+public launchGoogleMaps(url: string){
+  return this.bridge.launchGoogleMaps(url);
+}
+
 }
 
 export const CarPlay = new CarPlayInterface();

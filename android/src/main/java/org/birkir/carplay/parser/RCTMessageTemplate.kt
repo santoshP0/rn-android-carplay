@@ -13,7 +13,15 @@ class RCTMessageTemplate(
     val message = props.getString("message") ?: "No message"
     val messageText = parseCarText(message, props)
     return MessageTemplate.Builder(messageText).apply {
-      props.getArray("actions")?.let { setActionStrip(parseActionStrip(it)) }
+      props.getArray("actions")?.let {
+
+        for (i in 0 until it.size()) {
+          val actionMap = it.getMap(i)
+          val action = parseAction(actionMap)
+          addAction(action)
+        }
+
+      }
       props.getMap("headerAction")?.let { setHeaderAction(parseAction(it)) }
       props.getMap("icon")?.let { setIcon(parseCarIcon(it)) }
       props.getString("title")?.let { setTitle(it) }

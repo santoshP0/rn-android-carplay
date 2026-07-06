@@ -24,6 +24,7 @@ export interface PointOfInterestTemplateConfig extends TemplateConfig {
     latitudeDelta: number;
     longitudeDelta: number;
   }): void;
+  onActionButtonPressed?(e: { id: string; templateId: string, item: PointOfInterestItem }): void;
 }
 
 export class PointOfInterestTemplate extends Template<PointOfInterestTemplateConfig> {
@@ -34,7 +35,8 @@ export class PointOfInterestTemplate extends Template<PointOfInterestTemplateCon
   get eventMap() {
     return {
       didSelectPointOfInterest: 'onPointOfInterestSelect',
-      didChangeMapRegion: 'onChangeMapRegion',
+      actionButtonPressed: 'onActionButtonPressed',
+     // didChangeMapRegion: 'onChangeMapRegion',
     };
   }
 }

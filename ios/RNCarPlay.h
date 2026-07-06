@@ -8,7 +8,7 @@
 typedef void(^SearchResultUpdateBlock)(NSArray<CPListItem *> * _Nonnull);
 typedef void(^SelectedResultBlock)(void);
 
-@interface RNCarPlay : RCTEventEmitter<RCTBridgeModule, CPInterfaceControllerDelegate, CPSearchTemplateDelegate, CPListTemplateDelegate, CPMapTemplateDelegate,  CPTabBarTemplateDelegate, CPPointOfInterestTemplateDelegate, CPNowPlayingTemplateObserver> {
+@interface RNCarPlay : RCTEventEmitter<RCTBridgeModule,CPPointOfInterestTemplateDelegate, CPInterfaceControllerDelegate, CPSearchTemplateDelegate, CPListTemplateDelegate, CPMapTemplateDelegate,  CPTabBarTemplateDelegate, CPNowPlayingTemplateObserver> {
     CPInterfaceController *interfaceController;
     CPWindow *window;
     SearchResultUpdateBlock searchResultBlock;
@@ -22,7 +22,7 @@ typedef void(^SelectedResultBlock)(void);
 @property (nonatomic, copy) SelectedResultBlock selectedResultBlock;
 @property (nonatomic) BOOL isNowPlayingActive;
 
-+ (void) connectWithInterfaceController:(CPInterfaceController*)interfaceController window:(CPWindow*)window;
++ (void) connectWithInterfaceController:(CPInterfaceController*)interfaceController window:(CPWindow*)window scene:(CPTemplateApplicationScene*)scene;
 + (void) disconnect;
 - (NSArray<CPListSection*>*) parseSections:(NSArray*)sections;
 

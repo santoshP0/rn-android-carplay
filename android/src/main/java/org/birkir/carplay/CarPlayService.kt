@@ -10,14 +10,13 @@ import androidx.car.app.Session
 import androidx.car.app.SessionInfo
 import androidx.car.app.validation.HostValidator
 import com.facebook.react.ReactApplication
-import com.facebook.react.ReactInstanceManager
+import com.facebook.react.ReactHost
 
 class CarPlayService : CarAppService() {
-  private lateinit var reactInstanceManager: ReactInstanceManager
+  private var reactHost: ReactHost? = null
   override fun onCreate() {
     super.onCreate()
-    reactInstanceManager =
-      (application as ReactApplication).reactNativeHost.reactInstanceManager
+    reactHost = (application as ReactApplication).reactHost
   }
 
   override fun createHostValidator(): HostValidator {
@@ -26,7 +25,7 @@ class CarPlayService : CarAppService() {
 
   override fun onCreateSession(sessionInfo: SessionInfo): Session {
     Log.d(TAG, "onCreateSession: sessionId = ${sessionInfo.sessionId}, display = ${sessionInfo.displayType}")
-    return CarPlaySession(reactInstanceManager)
+    return CarPlaySession(reactHost!!)
   }
 
   companion object {

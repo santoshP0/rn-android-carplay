@@ -1,6 +1,7 @@
 package org.birkir.carplay
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -71,7 +72,13 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
   }
 
   fun setCarContext(carContext: CarContext, currentCarScreen: CarScreen) {
-    parser = Parser(carContext, CarScreenContext("", eventEmitter!!, carScreens));
+    try {
+      parser = Parser(carContext, CarScreenContext("", eventEmitter!!, carScreens));
+    }
+    catch (e: Exception){
+      e.printStackTrace()
+      eventEmitter?.didConnect()
+    }
     this.carContext = carContext
     this.currentCarScreen = currentCarScreen
     screenManager = currentCarScreen.screenManager
@@ -120,7 +127,7 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
   fun updateTemplate(templateId: String, config: ReadableMap) {
     handler.post {
       carTemplates[templateId] = config;
-      val screen = carScreens[name]
+      val screen = carScreens[templateId]
       if (screen != null) {
         val carScreenContext = carScreenContexts[screen];
         if (carScreenContext != null) {
@@ -187,11 +194,19 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
 
   @ReactMethod
   fun toast(text: String, duration: Int) {
+    if (!::carContext.isInitialized) {
+      Log.e(TAG, "carContext is not initialized. Cannot show toast.")
+      return
+    }
     CarToast.makeText(carContext, text, duration).show()
   }
 
   @ReactMethod
   fun alert(props: ReadableMap) {
+    if (!::carContext.isInitialized) {
+      Log.e(TAG, "carContext is not initialized. Cannot show alert.")
+      return
+    }
     handler.post {
       val id = props.getInt("id");
       val title = parser.parseCarText(props.getString("title")!!, props);
@@ -225,6 +240,10 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
 
   @ReactMethod
   fun dismissAlert(alertId: Int) {
+    if (!::carContext.isInitialized) {
+      Log.e(TAG, "carContext is not initialized. Cannot dismiss alert.")
+      return
+    }
     carContext.getCarService(AppManager::class.java).dismissAlert(alertId)
   }
 
@@ -247,10 +266,28 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
 
   @ReactMethod
   fun getHostInfo(promise: Promise) {
+    if (!::carContext.isInitialized) {
+      Log.e(TAG, "carContext is not initialized. Cannot get host info.")
+      promise.resolve(null)
+      return
+    }
     return promise.resolve(Arguments.createMap().apply {
       carContext.hostInfo?.packageName?.let { putString("packageName", it) }
       carContext.hostInfo?.uid?.let { putInt("uid", it) }
     });
+  }
+
+  @ReactMethod
+  fun launchGoogleMaps(url: String) {
+    if (!::carContext.isInitialized) {
+      Log.e(TAG, "carContext is not initialized. Cannot launch Google Maps.")
+      return
+    }
+    Log.d(TAG, "open maps with $url");
+    val intent = Intent(CarContext.ACTION_NAVIGATE, Uri.parse(url));
+    intent.setPackage("com.google.android.apps.maps");
+    carContext.startCarApp(intent)
+
   }
 
   // Others
@@ -271,6 +308,10 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
   }
 
   private fun createScreen(templateId: String): CarScreen? {
+     if (!::carContext.isInitialized) {
+        Log.e(TAG, "carContext not initialized")
+        return null
+    }
     val config = carTemplates[templateId];
     if (config != null) {
       val screen = CarScreen(carContext)

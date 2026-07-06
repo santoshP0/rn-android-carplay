@@ -153,9 +153,9 @@ abstract class RCTTemplate(
     return ItemList.Builder().apply {
       for (i in 0 until items!!.size()) {
         if (type == "row") {
-          addItem(parseRowItem(items.getMap(i), i))
+          addItem(parseRowItem(items!!.getMap(i)!!, i))
         } else if (type == "grid") {
-          addItem(parseGridItem(items.getMap(i), i))
+          addItem(parseGridItem(items!!.getMap(i)!!, i))
         }
       }
     }.build()
@@ -187,12 +187,12 @@ abstract class RCTTemplate(
       if (titleVariants != null) {
         if (titleVariants.size() > 0) {
           setTitle(parseCarText(
-            titleVariants.getString(0),
+            titleVariants!!.getString(0)!!,
             metadata
           ))
         }
         if (titleVariants.size() > 1) {
-          setText(titleVariants.getString(1))
+          setText(titleVariants!!.getString(1)!!)
         }
       }
       item.getMap("image")?.let { setImage(parseCarIcon(it)) }
@@ -211,11 +211,14 @@ abstract class RCTTemplate(
       )
     )
     PlaceMarker.Builder().apply {
-      setIcon(parseCarIcon(props.getMap("icon")!!), PlaceMarker.TYPE_IMAGE)
+      if(props.hasKey("icon")){
+        setIcon(parseCarIcon(props.getMap("icon")!!), PlaceMarker.TYPE_IMAGE)
+      }
+      else if(props.hasKey("label")){
+        props.getString("label")?.let { setLabel(it) }
+      }
       builder.setMarker(this.build())
-
     }
-
     return builder.build()
   }
 
@@ -249,7 +252,8 @@ abstract class RCTTemplate(
     return CarText.Builder(spanBuilder).build()
   }
 
-  protected fun buildRow(props: ReadableMap): Row {
+  protected fun buildRow(props: ReadableMap, index: Int): Row {
+    val id = props.getString("id") ?: index.toString()
     val builder = Row.Builder()
     builder.setTitle(
       parseCarText(
@@ -259,16 +263,19 @@ abstract class RCTTemplate(
     )
     props.getArray("texts")?.let {
       for (i in 0 until it.size()) {
-        builder.addText(it.getString(i))
+        builder.addText(it!!.getString(i)!!)
       }
     }
     props.getMap("image")?.let {
       builder.setImage(parseCarIcon(it))
     }
     try {
-      val onPress = props.getInt("onPress")
+     // val onPress = props.getInt("onPress")
       builder.setBrowsable(true)
-//      builder.setOnClickListener { invokeCallback(onPress) }
+
+      builder.setOnClickListener {
+        eventEmitter.didSelectPointOfInterest(id, index)
+      }
     } catch (e: Exception) {
       Log.w(TAG, "buildRow: failed to set clickListener on the row")
     }
@@ -278,6 +285,14 @@ abstract class RCTTemplate(
     return builder.build()
   }
 
+  protected fun parsePlaceItemList(items: ReadableArray?): ItemList {
+    return ItemList.Builder().apply {
+      for (i in 0 until items!!.size()) {
+
+          addItem(buildRow(items!!.getMap(i)!!,i))
+      }
+    }.build()
+  }
   protected fun parseDistanceUnit(value: String?): Int {
     return when (value) {
       "meters" -> Distance.UNIT_METERS
@@ -306,7 +321,7 @@ abstract class RCTTemplate(
       }
       item.getArray("items")?.let {
         for (i in 0 until it.size()) {
-          addRow(parseRowItem(it.getMap(i), i))
+          addRow(parseRowItem(it!!.getMap(i)!!, i))
         }
       }
     }.build()

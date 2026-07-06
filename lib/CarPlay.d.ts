@@ -22,6 +22,8 @@ import { TripConfig } from './navigation/Trip';
 import { TimeRemainingColor } from './interfaces/TimeRemainingColor';
 import { TextConfiguration } from './interfaces/TextConfiguration';
 import { Action } from './interfaces/Action';
+import { MessageTemplate } from './templates/android/MessageTemplate';
+import { PaneTemplate } from './templates/android/PaneTemplate';
 export interface InternalCarPlay extends NativeModule {
     checkForConnection(): void;
     setRootTemplate(templateId: string, animated: boolean): void;
@@ -32,6 +34,7 @@ export interface InternalCarPlay extends NativeModule {
     presentTemplate(templateId: string, animated: boolean): void;
     dismissTemplate(animated: boolean): void;
     enableNowPlaying(enabled: boolean): void;
+    openUrl(url: string): void;
     updateManeuversNavigationSession(id: string, x: Maneuver[]): void;
     updateTravelEstimatesNavigationSession(id: string, index: number, estimates: TravelEstimates): void;
     cancelNavigationSession(id: string): void;
@@ -75,8 +78,9 @@ export interface InternalCarPlay extends NativeModule {
         icon?: ImageSourcePropType;
         actions?: Action[];
     }): void;
+    launchGoogleMaps(url: string): void;
 }
-export type PushableTemplates = MapTemplate | SearchTemplate | GridTemplate | PointOfInterestTemplate | ListTemplate | InformationTemplate | ContactTemplate | NowPlayingTemplate | NavigationTemplate | PlaceListMapTemplate | PlaceListNavigationTemplate | RoutePreviewNavigationTemplate;
+export type PushableTemplates = MapTemplate | SearchTemplate | GridTemplate | PointOfInterestTemplate | ListTemplate | InformationTemplate | ContactTemplate | NowPlayingTemplate | NavigationTemplate | PlaceListMapTemplate | PlaceListNavigationTemplate | MessageTemplate | RoutePreviewNavigationTemplate | PaneTemplate;
 export type PresentableTemplates = AlertTemplate | ActionSheetTemplate | VoiceControlTemplate;
 export type WindowInformation = {
     width: number;
@@ -169,6 +173,12 @@ export declare class CarPlayInterface {
      * @param enable A Boolean value that indicates whether the system use now playing template.
      */
     enableNowPlaying(enable?: boolean): void;
+    /**
+      * Open url on Car device
+      * @param url A Boolean value that indicates whether the system use now playing template.
+      */
+    openUrl(url: any): void;
+    launchGoogleMaps(url: string): void;
 }
 export declare const CarPlay: CarPlayInterface;
 //# sourceMappingURL=CarPlay.d.ts.map

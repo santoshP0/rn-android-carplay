@@ -1,8 +1,9 @@
 {
-  "name": "react-native-carplay",
-  "version": "2.4.0-beta.2",
-  "description": "CarPlay for React Native",
+  "name": "@santoshpk/rn-android-carplay",
+  "version": "1.0.0",
+  "description": "React Native Android Auto / CarPlay — fork of react-native-carplay with ReactHost migration, POI enhancements, and modern RN compatibility",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "react-native": "src/index.ts",
   "source": "src/index.ts",
   "files": [
@@ -10,62 +11,39 @@
     "lib",
     "ios",
     "android",
-    "react-native-carplay.podspec"
+    "react-native-carplay.podspec",
+    "!android/.gradle",
+    "!android/build"
   ],
-  "podspecPath": "./react-native-carplay.podspec",
   "scripts": {
-    "prepack": "yarn run build",
-    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
-    "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json",
-    "fix-all-files": "eslint . --ext .ts,.tsx,.js,.jsx --fix"
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/birkir/react-native-carplay.git"
+    "url": "https://github.com/santoshP0/rn-android-carplay.git"
   },
   "keywords": [
-    "react",
-    "native",
+    "react-native",
+    "android",
+    "android-auto",
     "carplay",
-    "navigation",
     "car",
-    "auto"
+    "navigation",
+    "poi"
   ],
-  "author": "Birkir Gudjonsson <birkir.gudjonsson@gmail.com>",
+  "author": "Santosh Kumar",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/birkir/react-native-carplay/issues"
+    "url": "https://github.com/santoshP0/rn-android-carplay/issues"
   },
-  "homepage": "https://github.com/birkir/react-native-carplay#readme",
+  "homepage": "https://github.com/santoshP0/rn-android-carplay#readme",
   "peerDependencies": {
-    "react": "^17.0.2 || ^18.0.0",
-    "react-native": "^0.60.0"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    },
-    "react-native": {
-      "optional": true
-    }
+    "react": ">=18.0.0",
+    "react-native": ">=0.71.0"
   },
   "devDependencies": {
-    "@react-native-community/eslint-config": "3.2.0",
-    "@tsconfig/react-native": "3.0.2",
-    "@types/node": "17.0.25",
-    "@types/react": "18.0.6",
-    "@types/react-native": "0.67.5",
-    "cross-env": "7.0.3",
-    "docusaurus-plugin-typedoc": "0.19.2",
-    "eslint": "^8.19.0",
-    "jest": "29.5.0",
-    "microbundle": "0.14.2",
-    "prettier": "2.6.2",
-    "rimraf": "3.0.2",
-    "typedoc": "0.24.7",
-    "typedoc-github-wiki-theme": "1.1.0",
-    "typedoc-plugin-markdown": "3.15.3",
-    "typescript": "5.0.4"
+    "typescript": "^5.0.0",
+    "@types/react": "^19.0.0"
   }
 }
