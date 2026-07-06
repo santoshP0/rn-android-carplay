@@ -1,27 +1,12 @@
 # @santoshpk/rn-android-carplay
 
-React Native bindings for **Android Auto** (and Apple CarPlay), forked from
-[`react-native-carplay`](https://github.com/birkir/react-native-carplay) `2.4.0-beta.2`.
+[![npm](https://img.shields.io/npm/v/@santoshpk/rn-android-carplay.svg)](https://www.npmjs.com/package/@santoshpk/rn-android-carplay)
+[![license](https://img.shields.io/npm/l/@santoshpk/rn-android-carplay.svg)](./LICENSE)
 
-This fork focuses on making the **Android Auto** side production-ready: it migrates the
-native layer to the modern `ReactHost` API, adds Point-of-Interest (POI) enhancements,
-fixes template parsing/rendering bugs, and adds a few extra bridge methods
-(`openUrl`, `launchGoogleMaps`). iOS CarPlay support from upstream is retained.
+React Native bindings for **Android Auto** and **Apple CarPlay**.
 
-> Publishing this as a real package removes the need for the large `patch-package`
-> diff previously carried inside the app.
-
----
-
-## Why this fork
-
-| Area | Change |
-| --- | --- |
-| Native host | Migrated to `ReactHost` for modern React Native (0.71+ / New Architecture friendly) |
-| Templates | Fixes in `RCTMapTemplate`, `ListTemplate`, `PaneTemplate`, `PlaceListMapTemplate`, `MessageTemplate` |
-| POI | Enhanced Point-of-Interest template + `PlaceListMapTemplate` options |
-| Bridge | Added `CarPlay.openUrl(url)` and `CarPlay.launchGoogleMaps(url)` |
-| Android Auto | "Reload Android Auto" menu item wired through `didPressMenuItem` |
+A fork of [`react-native-carplay`](https://github.com/birkir/react-native-carplay)
+`2.4.0-beta.2` with a production-hardened Android Auto layer
 
 ---
 
@@ -29,7 +14,6 @@ fixes template parsing/rendering bugs, and adds a few extra bridge methods
 
 - React Native **>= 0.71**, React **>= 18**
 - Android **minSdk 23**, **compileSdk 34**
-- `androidx.car.app:app:1.4.0-beta02`
 - A car head unit or the **Desktop Head Unit (DHU)** emulator for testing
 
 ---
@@ -52,68 +36,6 @@ npm i react-native-carplay@npm:@santoshpk/rn-android-carplay
 ```
 
 Otherwise update imports to `@santoshpk/rn-android-carplay`.
-
----
-
-## Android setup
-
-### 1. `AndroidManifest.xml`
-
-The library ships a manifest that registers `CarPlayService` under the Android Auto
-**POI** category. In your **app** manifest declare the Android Auto min API level and
-(if not already present) the car app service. Minimal example:
-
-```xml
-<application ...>
-  <meta-data
-    android:name="androidx.car.app.minCarApiLevel"
-    android:value="1" />
-
-  <service
-    android:name="org.birkir.carplay.CarPlayService"
-    android:exported="true">
-    <intent-filter>
-      <action android:name="androidx.car.app.CarAppService" />
-      <category android:name="androidx.car.app.category.POI" />
-    </intent-filter>
-  </service>
-</application>
-```
-
-> Swap the category for `androidx.car.app.category.NAVIGATION` or `.MESSAGING`
-> depending on your app type, and request the matching `androidx.car.app.*_TEMPLATES`
-> permission.
-
-### 2. `automotive_app_desc.xml`
-
-Create `android/app/src/main/res/xml/automotive_app_desc.xml`:
-
-```xml
-<automotiveApp>
-  <uses name="template" />
-</automotiveApp>
-```
-
-Reference it from the manifest `<application>`:
-
-```xml
-<meta-data
-  android:name="com.google.android.gms.car.application"
-  android:resource="@xml/automotive_app_desc" />
-```
-
-### 3. Gradle (optional overrides)
-
-The library defaults to `compileSdk 34 / minSdk 23 / targetSdk 34`. Override in your
-root `android/build.gradle` `ext` block if needed:
-
-```gradle
-ext {
-    compileSdkVersion = 34
-    minSdkVersion = 23
-    targetSdkVersion = 34
-}
-```
 
 ---
 
@@ -163,8 +85,13 @@ CarPlay.registerOnDisconnect(() => {
 | `popTemplate(animated?)` / `popToRootTemplate(animated?)` | Navigate back |
 | `presentTemplate(template, animated?)` / `dismissTemplate(animated?)` | Modal templates |
 | `enableNowPlaying(enable?)` | Toggle Now Playing template |
-| **`openUrl(url)`** *(fork)* | Open a URL on the car/phone |
-| **`launchGoogleMaps(url)`** *(fork)* | Launch Google Maps navigation. Pass a `geo:` URI, e.g. `CarPlay.launchGoogleMaps(\`geo:${lat},${lng}\`)` |
+| **`openUrl(url)`** *(fork, **iOS only**)* | Open a maps URL, e.g. `CarPlay.openUrl(\`http://maps.apple.com/?daddr=${lat},${lng}&dirflg=d\`)`. No-ops with a warning on Android. |
+| **`launchGoogleMaps(url)`** *(fork, **Android only**)* | Launch Google Maps navigation with a `geo:` URI, e.g. `CarPlay.launchGoogleMaps(\`geo:${lat},${lng}\`)`. No-ops with a warning on iOS. |
+
+> **Platform routing:** `openUrl` is iOS-only, `launchGoogleMaps` is Android-only. Each
+> no-ops (with a `console.warn`) on the other platform, so a wrong-platform call is safe
+> — but route navigation per platform: Apple Maps via `openUrl` on iOS, Google Maps via
+> `launchGoogleMaps` on Android.
 
 ---
 
@@ -193,19 +120,6 @@ CarPlay.registerOnDisconnect(() => {
    ~/Library/Android/sdk/extras/google/auto/desktop-head-unit
    ```
 
----
-
-## Building from source
-
-```bash
-git clone https://github.com/santoshP0/rn-android-carplay.git
-cd rn-android-carplay
-npm install
-npm run build      # tsc → lib/
-```
-
-`lib/` is generated (git-ignored) and rebuilt automatically on `npm publish` via the
-`prepare` script.
 
 ---
 

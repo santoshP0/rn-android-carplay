@@ -174,10 +174,22 @@ export declare class CarPlayInterface {
      */
     enableNowPlaying(enable?: boolean): void;
     /**
-      * Open url on Car device
-      * @param url A Boolean value that indicates whether the system use now playing template.
-      */
-    openUrl(url: any): void;
+     * Open a URL on the car device. **iOS only.**
+     *
+     * On iOS pass a maps URL, e.g. `http://maps.apple.com/?daddr=<lat>,<lng>&dirflg=d`.
+     * On Android use {@link launchGoogleMaps} instead.
+     *
+     * @param url The URL to open.
+     */
+    openUrl(url: string): void;
+    /**
+     * Launch Google Maps navigation on the car device. **Android only.**
+     *
+     * Pass a `geo:` URI, e.g. `geo:<lat>,<lng>`.
+     * On iOS use {@link openUrl} with an Apple Maps URL instead.
+     *
+     * @param url The `geo:` URI to navigate to.
+     */
     launchGoogleMaps(url: string): void;
 }
 export declare const CarPlay: CarPlayInterface;

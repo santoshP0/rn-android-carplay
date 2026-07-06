@@ -284,19 +284,37 @@ export class CarPlayInterface {
     return this.bridge.enableNowPlaying(enable);
   }
 
- /**
-   * Open url on Car device
-   * @param url A Boolean value that indicates whether the system use now playing template.
+  /**
+   * Open a URL on the car device. **iOS only.**
+   *
+   * On iOS pass a maps URL, e.g. `http://maps.apple.com/?daddr=<lat>,<lng>&dirflg=d`.
+   * On Android use {@link launchGoogleMaps} instead.
+   *
+   * @param url The URL to open.
    */
- public openUrl(url) {
-  console.log("OPEN URL",url)
-  return this.bridge.openUrl(url);
-}
+  public openUrl(url: string) {
+    if (Platform.OS !== 'ios') {
+      console.warn('[CarPlay] openUrl is iOS-only. Use launchGoogleMaps on Android.');
+      return;
+    }
+    return this.bridge.openUrl(url);
+  }
 
-public launchGoogleMaps(url: string){
-  return this.bridge.launchGoogleMaps(url);
-}
-
+  /**
+   * Launch Google Maps navigation on the car device. **Android only.**
+   *
+   * Pass a `geo:` URI, e.g. `geo:<lat>,<lng>`.
+   * On iOS use {@link openUrl} with an Apple Maps URL instead.
+   *
+   * @param url The `geo:` URI to navigate to.
+   */
+  public launchGoogleMaps(url: string) {
+    if (Platform.OS !== 'android') {
+      console.warn('[CarPlay] launchGoogleMaps is Android-only. Use openUrl on iOS.');
+      return;
+    }
+    return this.bridge.launchGoogleMaps(url);
+  }
 }
 
 export const CarPlay = new CarPlayInterface();
