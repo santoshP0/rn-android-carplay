@@ -149,7 +149,6 @@ export class CarPlayInterface {
 
   constructor() {
     this.emitter.addListener('didConnect', (window: WindowInformation) => {
-      console.log('we are connected yes!');
       this.connected = true;
       this.window = window;
       this.onConnectCallbacks.forEach(callback => {

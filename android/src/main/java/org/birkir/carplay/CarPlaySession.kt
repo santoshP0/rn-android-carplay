@@ -44,7 +44,7 @@ class CarPlaySession(private val reactHost: ReactHost) : Session(), DefaultLifec
             reactHost.currentReactContext?.let { invokeStartTask(it) }
           }
         }
-      }, IntentFilter("org.birkir.carplay.APP_RELOAD"), 2)
+      }, IntentFilter("org.birkir.carplay.APP_RELOAD"), Context.RECEIVER_NOT_EXPORTED)
     } else {
       carContext.registerReceiver(object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {

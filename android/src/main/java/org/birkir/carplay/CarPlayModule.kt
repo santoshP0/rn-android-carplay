@@ -261,6 +261,8 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
   @ReactMethod
   fun reload() {
     val intent = Intent("org.birkir.carplay.APP_RELOAD")
+    // security: keep the reload broadcast inside this app
+    intent.setPackage(reactContext.packageName)
     reactContext.sendBroadcast(intent)
   }
 

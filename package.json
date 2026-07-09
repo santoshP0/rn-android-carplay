@@ -13,7 +13,10 @@
     "android",
     "react-native-carplay.podspec",
     "!android/.gradle",
-    "!android/build"
+    "!android/build",
+    "!android/.idea",
+    "!android/.cxx",
+    "!android/local.properties"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

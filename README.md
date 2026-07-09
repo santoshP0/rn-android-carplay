@@ -1,7 +1,7 @@
 # @santoshpk/react-native-carplay
 
 [![npm](https://img.shields.io/npm/v/@santoshpk/react-native-carplay.svg)](https://www.npmjs.com/package/@santoshpk/react-native-carplay)
-[![license](https://img.shields.io/npm/l/@santoshpk/react-native-carplay.svg)](./LICENSE)
+[![license](https://img.shields.io/npm/l/@santoshpk/react-native-carplay.svg)](https://opensource.org/licenses/MIT)
 
 React Native bindings for **Android Auto** and **Apple CarPlay**.
 
